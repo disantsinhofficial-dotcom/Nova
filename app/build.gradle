@@ -2,10 +2,6 @@ plugins {
     id 'base'
 }
 
-import java.util.zip.ZipFile
-import java.util.zip.ZipOutputStream
-import java.util.zip.ZipEntry
-
 tasks.register('assembleDebug') {
     description = 'Assembles signed debug APK for NovaWii HD'
     group = 'build'
@@ -101,37 +97,23 @@ tasks.register('assembleDebug') {
             }
         }
 
-        // 6. Merge classes.dex into APK
+        // 6. Merge classes.dex into APK using Java jar command
         def dexFile = file("${workDir}/classes.dex")
-        def combinedApk = file("${workDir}/combined.apk")
-        println "Packaging classes.dex into APK..."
-
-        def srcZip = new ZipFile(protoApk)
-        def zos = new ZipOutputStream(new FileOutputStream(combinedApk))
-
-        srcZip.entries().each { entry ->
-            zos.putNextEntry(new ZipEntry(entry.name))
-            srcZip.getInputStream(entry).withStream { is ->
-                zos << is
-            }
-            zos.closeEntry()
-        }
-        srcZip.close()
-
         if (dexFile.exists()) {
-            zos.putNextEntry(new ZipEntry("classes.dex"))
-            dexFile.withInputStream { is ->
-                zos << is
+            println "Packaging classes.dex into APK..."
+            def javaHome = System.getenv("JAVA_HOME") ?: System.getProperty("java.home")
+            def jarCmd = "${javaHome}/bin/jar"
+            exec {
+                workingDir workDir
+                commandLine jarCmd, 'uf', protoApk.absolutePath, 'classes.dex'
             }
-            zos.closeEntry()
         }
-        zos.close()
 
         // 7. Zipalign
         def alignedApk = file("${workDir}/aligned.apk")
         println "Aligning APK with zipalign..."
         exec {
-            commandLine zipalign, '-p', '-f', '4', combinedApk.absolutePath, alignedApk.absolutePath
+            commandLine zipalign, '-p', '-f', '4', protoApk.absolutePath, alignedApk.absolutePath
         }
 
         // 8. Sign with debug.keystore
@@ -146,7 +128,6 @@ tasks.register('assembleDebug') {
                 '--ks', keystore.absolutePath,
                 '--ks-pass', 'pass:android',
                 '--ks-key-alias', 'androiddebugkey',
-                '--key-pass', 'pass:android',
                 '--out', apkFile.absolutePath,
                 alignedApk.absolutePath
         }

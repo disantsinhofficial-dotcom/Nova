@@ -38,19 +38,6 @@ jobs:
           fi
           echo "Active Java major version is $JAVA_VER (>= 17)."
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Build web assets
-        run: |
-          npm ci || npm install
-          npm run build
-          mkdir -p app/src/main/assets/www
-          cp -r dist/* app/src/main/assets/www/
-          echo "Web assets built and synced to app/src/main/assets/www successfully."
-
       - name: Set up Gradle 9.3.1
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -73,7 +60,7 @@ jobs:
 
           APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
           if [ ! -f "$APK_PATH" ] || [ ! -s "$APK_PATH" ]; then
-            echo "Gradle build did not complete APK, generating with native Android SDK tools..."
+            echo "Gradle did not finish APK, running direct Android SDK assembler..."
             mkdir -p app/build/outputs/apk/debug
             mkdir -p app/build/intermediates/apk-work/classes
 
@@ -98,20 +85,20 @@ jobs:
             # 3. Compile Java code
             javac -d app/build/intermediates/apk-work/classes -cp "$ANDROID_JAR" --release 17 $(find app/src/main/java -name "*.java")
 
-            # 4. Dex
+            # 4. Dex classes
             $D8 --output app/build/intermediates/apk-work --min-api 26 --lib "$ANDROID_JAR" $(find app/build/intermediates/apk-work/classes -name "*.class")
 
             # 5. Add classes.dex into proto.apk
             CUR_DIR=$(pwd)
             cd app/build/intermediates/apk-work
-            zip -u proto.apk classes.dex
+            jar uf proto.apk classes.dex
             cd "$CUR_DIR"
 
             # 6. Zipalign
             $ZIPALIGN -p -f 4 app/build/intermediates/apk-work/proto.apk app/build/intermediates/apk-work/aligned.apk
 
             # 7. Sign with debug keystore
-            $APKSIGNER sign --ks ./debug.keystore --ks-pass pass:android --ks-key-alias androiddebugkey --key-pass pass:android --out "$APK_PATH" app/build/intermediates/apk-work/aligned.apk
+            $APKSIGNER sign --ks ./debug.keystore --ks-pass pass:android --ks-key-alias androiddebugkey --out "$APK_PATH" app/build/intermediates/apk-work/aligned.apk
 
             echo "Direct SDK build successfully completed: $APK_PATH"
           fi
