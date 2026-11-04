@@ -1,10 +1,10 @@
-import java.util.zip.ZipFile
-import java.util.zip.ZipOutputStream
-import java.util.zip.ZipEntry
-
 plugins {
     id 'base'
 }
+
+import java.util.zip.ZipFile
+import java.util.zip.ZipOutputStream
+import java.util.zip.ZipEntry
 
 tasks.register('assembleDebug') {
     description = 'Assembles signed debug APK for NovaWii HD'
@@ -15,7 +15,7 @@ tasks.register('assembleDebug') {
         outDir.mkdirs()
         def apkFile = file("${outDir}/app-debug.apk")
 
-        // 1. Locate Android SDK on runner
+        // 1. Locate Android SDK on GitHub Actions runner
         def androidHome = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT") ?: "/usr/local/lib/android/sdk"
         def sdkDir = file(androidHome)
         if (!sdkDir.exists()) {
