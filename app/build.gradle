@@ -11,7 +11,8 @@ tasks.register('assembleDebug') {
     group = 'build'
 
     doLast {
-        def outDir = file("${project.buildDir}/outputs/apk/debug")
+        def buildDirFile = file("${projectDir}/build")
+        def outDir = file("${buildDirFile}/outputs/apk/debug")
         outDir.mkdirs()
         def apkFile = file("${outDir}/app-debug.apk")
 
@@ -44,7 +45,7 @@ tasks.register('assembleDebug') {
         def zipalign = new File(buildTool, "zipalign").absolutePath
         def apksigner = new File(buildTool, "apksigner").absolutePath
 
-        def workDir = file("${project.buildDir}/intermediates/apk-work")
+        def workDir = file("${buildDirFile}/intermediates/apk-work")
         workDir.deleteDir()
         workDir.mkdirs()
 
