@@ -45,12 +45,14 @@ tasks.register('assembleDebug') {
         workDir.deleteDir()
         workDir.mkdirs()
 
-        // 2. Compile Resources with aapt2
+        // 2. Compile Resources with aapt2 into directory of .flat files
         def resDir = file("src/main/res")
-        def resZip = file("${workDir}/res.zip")
+        def compiledResDir = file("${buildDirFile}/intermediates/compiled_res")
+        compiledResDir.deleteDir()
+        compiledResDir.mkdirs()
         println "Compiling resources with aapt2..."
         exec {
-            commandLine aapt2, 'compile', '--dir', resDir.absolutePath, '-o', resZip.absolutePath
+            commandLine aapt2, 'compile', '--dir', resDir.absolutePath, '-o', compiledResDir.absolutePath
         }
 
         // 3. Link Resources, Assets and Manifest with aapt2
@@ -63,7 +65,8 @@ tasks.register('assembleDebug') {
         if (assetsDir.exists()) {
             linkCmd.addAll(['-A', assetsDir.absolutePath])
         }
-        linkCmd.add(resZip.absolutePath)
+        def flatFiles = fileTree(dir: compiledResDir, include: '**/*.flat').files
+        flatFiles.each { linkCmd.add(it.absolutePath) }
 
         exec {
             commandLine linkCmd

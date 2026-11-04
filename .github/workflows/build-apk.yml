@@ -63,6 +63,7 @@ jobs:
             echo "Gradle did not finish APK, running direct Android SDK assembler..."
             mkdir -p app/build/outputs/apk/debug
             mkdir -p app/build/intermediates/apk-work/classes
+            mkdir -p app/build/intermediates/compiled_res
 
             SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
             BUILD_TOOL=$(ls -d $SDK_ROOT/build-tools/* | sort -V | tail -n 1)
@@ -76,11 +77,11 @@ jobs:
             echo "Using Build Tool: $BUILD_TOOL"
             echo "Using Platform: $PLATFORM"
 
-            # 1. Compile resources
-            $AAPT2 compile --dir app/src/main/res -o app/build/intermediates/apk-work/res.zip
+            # 1. Compile resources into directory
+            $AAPT2 compile --dir app/src/main/res -o app/build/intermediates/compiled_res/
 
-            # 2. Link APK with manifest and assets
-            $AAPT2 link -I "$ANDROID_JAR" --manifest app/src/main/AndroidManifest.xml -A app/src/main/assets -o app/build/intermediates/apk-work/proto.apk --auto-add-overlay app/build/intermediates/apk-work/res.zip
+            # 2. Link APK with manifest, assets and compiled flat files
+            $AAPT2 link -I "$ANDROID_JAR" --manifest app/src/main/AndroidManifest.xml -A app/src/main/assets -o app/build/intermediates/apk-work/proto.apk --auto-add-overlay app/build/intermediates/compiled_res/*.flat
 
             # 3. Compile Java code
             javac -d app/build/intermediates/apk-work/classes -cp "$ANDROID_JAR" --release 17 $(find app/src/main/java -name "*.java")
