@@ -1,0 +1,27 @@
+{
+  "id": "/",
+  "name": "NovaWii HD - ColorOS 13 Wii Emulator",
+  "short_name": "NovaWii",
+  "description": "Ultra-fast 60 FPS Wii games emulator optimized for Android ColorOS 13 with HyperBoost, zero lag, and 3D playable games.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "landscape-primary",
+  "theme_color": "#030712",
+  "background_color": "#030712",
+  "categories": ["games", "entertainment", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

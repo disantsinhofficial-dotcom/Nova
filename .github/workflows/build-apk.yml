@@ -38,6 +38,19 @@ jobs:
           fi
           echo "Active Java major version is $JAVA_VER (>= 17)."
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build web assets
+        run: |
+          npm ci || npm install
+          npm run build
+          mkdir -p app/src/main/assets/www
+          cp -r dist/* app/src/main/assets/www/
+          echo "Web assets built and synced to app/src/main/assets/www successfully."
+
       - name: Set up Gradle 9.3.1
         uses: gradle/actions/setup-gradle@v4
         with:
